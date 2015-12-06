@@ -88,6 +88,8 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
         Paint mTickPaint;
         Paint mRTickPaint;
 
+        //geilstes watchface ever
+
         boolean mAmbient;
         Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
