@@ -87,8 +87,9 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
         Paint mSecondPaint;
         Paint mTickPaint;
         Paint mRTickPaint;
+        Bitmap mHourHand;
 
-        //geilstes watchface ever
+        //geilstes watchface ever : ok, lässig.
 
         boolean mAmbient;
         Time mTime;
@@ -148,6 +149,7 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             mRTickPaint.setStrokeWidth(4.f);
             mRTickPaint.setAntiAlias(true);
 
+            mHourHand = BitmapFactory.decodeResource(getResources(),R.drawable.stundenzeiger);
 
 
             mTime = new Time();
@@ -294,6 +296,15 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             float hrY = (float) -Math.cos(hrRot) * hrLength;
             canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY, mHourPaint);
 
+
+            //Bitmap Zeiger:
+            //vielleicht machts Sinn den Zeiger in der Bilddatei umzudrehen, so dass der Ursprung oben ist.
+
+            canvas.save();
+            canvas.rotate(10,centerX,centerY); //rotiert den Zeiger um den gegebenen Punkt
+            canvas.translate(0,0);  //verschiebt den Zeiger
+            canvas.drawBitmap(mHourHand,centerX,centerY,null);  //zeichnet den Zeiger an der gegebenen Stelle (Aenderungen von translate kommen ggf. noch dazu)
+            canvas.restore();
 
         }
 
