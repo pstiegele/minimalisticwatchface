@@ -95,7 +95,6 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
         Paint mSecondPaint;
         Paint mTickPaint;
         Paint mRTickPaint;
-<<<<<<< HEAD
         Paint mCirclePaint;
         Paint mTextPaint;
 
@@ -111,11 +110,6 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
 
         //int width2 = metrics.widthPixels;
         int width = 320;
-=======
-        Bitmap mHourHand;
-
-        //geilstes watchface ever : ok, lässig.
->>>>>>> 6d721c85286a6874daef3cbea33e50f4ce8256f1
 
         boolean mAmbient;
         Time mTime;
@@ -186,7 +180,6 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             mRTickPaint.setStrokeWidth((float) 0.02*width);
             mRTickPaint.setAntiAlias(true);
 
-<<<<<<< HEAD
             mCirclePaint = new Paint();
             mCirclePaint.setARGB(255, 255, 0, 0);
             mCirclePaint.setStrokeWidth((float) 0.008*width);
@@ -200,9 +193,6 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
 
             mCalendar = Calendar.getInstance();
 
-=======
-            mHourHand = BitmapFactory.decodeResource(getResources(),R.drawable.stundenzeiger);
->>>>>>> 6d721c85286a6874daef3cbea33e50f4ce8256f1
 
 
             mTime = new Time();
@@ -385,12 +375,11 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             minMatrix.postTranslate(centerX-minHand.getWidth()/2,centerY-(minHand.getHeight() + 0.096f*width));
 
 
-<<<<<<< HEAD
             String strDate = Integer.toString(date);
             float textWidthDate = mTextPaint.measureText(strDate);
             canvas.drawText(strDate, centerX-textWidthDate/2, centerY + 0.6f*centerY, mTextPaint);
 
-            float textWidthDay = mTextPaint.measureText(strDay);
+            float textWidthDay = mTextPaint.measureText(strDate);
             canvas.drawText(strDay, centerX-textWidthDay/2, centerY - 0.5f*centerY, mTextPaint);
 
             canvas.drawBitmap(hourHand,hourMatrix,mHourPaint);
@@ -402,16 +391,6 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
                 canvas.drawLine(centerX, centerY, centerX + secX, centerY + secY, mSecondPaint);
                 canvas.drawCircle(centerX, centerY, 0.016f*width, mCirclePaint);
             }
-=======
-            //Bitmap Zeiger:
-            //vielleicht machts Sinn den Zeiger in der Bilddatei umzudrehen, so dass der Ursprung oben ist.
-
-            canvas.save();
-            canvas.rotate(10,centerX,centerY); //rotiert den Zeiger um den gegebenen Punkt
-            canvas.translate(0,0);  //verschiebt den Zeiger
-            canvas.drawBitmap(mHourHand,centerX,centerY,null);  //zeichnet den Zeiger an der gegebenen Stelle (Aenderungen von translate kommen ggf. noch dazu)
-            canvas.restore();
->>>>>>> 6d721c85286a6874daef3cbea33e50f4ce8256f1
 
         }
 
