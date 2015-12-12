@@ -379,7 +379,7 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             float textWidthDate = mTextPaint.measureText(strDate);
             canvas.drawText(strDate, centerX-textWidthDate/2, centerY + 0.6f*centerY, mTextPaint);
 
-            float textWidthDay = mTextPaint.measureText(strDate);
+            float textWidthDay = mTextPaint.measureText(strDay);
             canvas.drawText(strDay, centerX-textWidthDay/2, centerY - 0.5f*centerY, mTextPaint);
 
             canvas.drawBitmap(hourHand,hourMatrix,mHourPaint);
