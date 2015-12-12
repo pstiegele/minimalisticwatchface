@@ -96,14 +96,15 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
         Paint mTickPaint;
         Paint mRTickPaint;
         Paint mCirclePaint;
-        Paint mTextPaint;
+        Paint mDatePaint;
+        Paint mDayPaint;
 
         Bitmap originalHourHand;
         Bitmap originalMinHand;
         Bitmap hourHand;
         Bitmap minHand;
 
-        Typeface caviarDreams;
+        Typeface dayDateText;
 
         //DisplayMetrics metrics = new DisplayMetrics();
         //getActivityContext().getWindowManager().getDefaultDisplay.getMetrics(metrics);
@@ -185,11 +186,16 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             mCirclePaint.setStrokeWidth((float) 0.008*width);
             mCirclePaint.setAntiAlias(true);
 
-            caviarDreams = Typeface.createFromAsset(getAssets(),"CaviarDreamsBold.ttf");
-            mTextPaint = new Paint();
-            mTextPaint.setTypeface(caviarDreams);
-            mTextPaint.setTextSize((float) 0.1*width);
-            mTextPaint.setARGB(255, 255, 0, 0);
+            dayDateText = Typeface.createFromAsset(getAssets(),"EuroCaps.ttf");
+            mDatePaint = new Paint();
+            mDatePaint.setTypeface(dayDateText);
+            mDatePaint.setTextSize((float) 0.11*width);
+            mDatePaint.setARGB(255, 255, 0, 0);
+
+            mDayPaint = new Paint();
+            mDayPaint.setTypeface(dayDateText);
+            mDayPaint.setTextSize((float) 0.08*width);
+            mDayPaint.setARGB(255, 255, 0, 0);
 
             mCalendar = Calendar.getInstance();
 
@@ -376,11 +382,11 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
 
 
             String strDate = Integer.toString(date);
-            float textWidthDate = mTextPaint.measureText(strDate);
-            canvas.drawText(strDate, centerX-textWidthDate/2, centerY + 0.6f*centerY, mTextPaint);
+            float textWidthDate = mDatePaint.measureText(strDate);
+            canvas.drawText(strDate, centerX-textWidthDate/2, centerY + 0.6f*centerY, mDatePaint);
 
-            float textWidthDay = mTextPaint.measureText(strDay);
-            canvas.drawText(strDay, centerX-textWidthDay/2, centerY - 0.5f*centerY, mTextPaint);
+            float textWidthDay = mDayPaint.measureText(strDay);
+            canvas.drawText(strDay, centerX-textWidthDay/2, centerY - 0.45f*centerY, mDayPaint);
 
             canvas.drawBitmap(hourHand,hourMatrix,mHourPaint);
             canvas.drawBitmap(minHand,minMatrix,mMinutePaint);
