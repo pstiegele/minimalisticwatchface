@@ -1,4 +1,3 @@
-
 package de.lurilabs.minimalisticwatchface;
 
 import android.content.BroadcastReceiver;
@@ -13,15 +12,18 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
-import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
+import android.view.WindowInsets;
 
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
@@ -62,9 +64,8 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
 
     private class Engine extends CanvasWatchFaceService.Engine {
 
-        Calendar mCalendar;
-
         final Handler mUpdateTimeHandler = new EngineHandler(this);
+        Calendar mCalendar;
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mHourPaint;
         Paint mMinutePaint;
@@ -84,8 +85,13 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
 
         int width;
         int height;
+        float centerX;
+        float centerY;
 
         boolean mAmbient;
+        boolean mIsRound;
+        int mChinSize;
+
         Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
@@ -106,11 +112,16 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
                     .setAcceptsTapEvents(true)
+                    .setAmbientPeekMode(WatchFaceStyle.AMBIENT_PEEK_MODE_HIDDEN)
+                    .setStatusBarGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP)
+                    .setHotwordIndicatorGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP)
                     .build());
 
             mTime = new Time();
+
         }
-        public void onSurfaceChanged(SurfaceHolder holder, int format, int mWidth, int mHeight){
+
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int mWidth, int mHeight) {
             super.onSurfaceChanged(holder, format, width, height);
 
             width = mWidth;
@@ -119,17 +130,17 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             originalHourHand = BitmapFactory.decodeResource(getResources(), R.drawable.stundenzeiger);
             originalMinHand = BitmapFactory.decodeResource(getResources(), R.drawable.minutenzeiger);
 
-            int hourHandx = Math.round((float) 0.041*width);
-            int hourHandy = Math.round((float) 0.205*width);
-            int minHandx = Math.round((float) 0.035*width);
-            int minHandy = Math.round((float) 0.322*width);
+            int hourHandx = Math.round((float) 0.041 * width);
+            int hourHandy = Math.round((float) 0.205 * width);
+            int minHandx = Math.round((float) 0.035 * width);
+            int minHandy = Math.round((float) 0.322 * width);
 
             hourHand = Bitmap.createScaledBitmap(originalHourHand, hourHandx, hourHandy, true);
             minHand = Bitmap.createScaledBitmap(originalMinHand, minHandx, minHandy, true);
 
             mHourPaint = new Paint();
             mHourPaint.setARGB(255, 255, 255, 255);
-            mHourPaint.setStrokeWidth((float) 0.041*width);
+            mHourPaint.setStrokeWidth((float) 0.041 * width);
             mHourPaint.setAntiAlias(true);
             mHourPaint.setStrokeCap(Paint.Cap.ROUND);
 
@@ -152,24 +163,26 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
 
             mRTickPaint = new Paint();
             mRTickPaint.setARGB(255, 255, 0, 0);
-            mRTickPaint.setStrokeWidth((float) 0.02*width);
+            mRTickPaint.setStrokeWidth((float) 0.02 * width);
             mRTickPaint.setAntiAlias(true);
 
             mCirclePaint = new Paint();
             mCirclePaint.setARGB(255, 255, 0, 0);
-            mCirclePaint.setStrokeWidth((float) 0.008*width);
+            mCirclePaint.setStrokeWidth((float) 0.008 * width);
             mCirclePaint.setAntiAlias(true);
 
-            dayDateText = Typeface.createFromAsset(getAssets(),"EuroCaps.ttf");
+            dayDateText = Typeface.createFromAsset(getAssets(), "EuroCaps.ttf");
             mDatePaint = new Paint();
             mDatePaint.setTypeface(dayDateText);
             mDatePaint.setTextSize((float) 0.11 * width);
             mDatePaint.setARGB(255, 255, 0, 0);
+            mDatePaint.setTextAlign(Paint.Align.CENTER);
 
             mDayPaint = new Paint();
             mDayPaint.setTypeface(dayDateText);
-            mDayPaint.setTextSize((float) 0.08*width);
+            mDayPaint.setTextSize((float) 0.08 * width);
             mDayPaint.setARGB(255, 255, 0, 0);
+            mDayPaint.setTextAlign(Paint.Align.CENTER);
 
             mCalendar = Calendar.getInstance();
 
@@ -209,7 +222,7 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
                 }
                 invalidate();
             }
-             updateTimer();
+            updateTimer();
         }
 
         /**
@@ -238,14 +251,25 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
             mTime.setToNow();
+
+            drawTicks(canvas);
+            drawBattery(canvas);
+            drawWeekDay(canvas);
+            drawDay(canvas);
+            drawHands(canvas);
+
+
+        }
+
+        private void drawTicks(Canvas canvas) {
             //set Tickbreite ?
             //TODO: Auslagern
-            int Ticks = Math.round(0.068f*width);
-            int RTicks = Math.round(0.098f*width);
+            int Ticks = Math.round(0.068f * width);
+            int RTicks = Math.round(0.098f * width);
             canvas.drawColor(Color.BLACK);
             //TODO: Auslagern
-            float centerX = width / 2f;
-            float centerY = height / 2f;
+            centerX = width / 2f;
+            centerY = height / 2f;
 
             // Draw the ticks.
             float innerTickRadius;
@@ -262,8 +286,14 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
                     outerTickRadius = centerX;
                     paint = mRTickPaint;
                 } else {
-                    innerTickRadius = centerX - Ticks;
-                    outerTickRadius = centerX;
+                    if (mIsRound){
+                        innerTickRadius = centerX - Ticks;
+                        outerTickRadius = centerX;
+                    }else {
+                        innerTickRadius = centerX;
+                        outerTickRadius = width;
+                    }
+
                     paint = mTickPaint;
                 }
                 float tickRot = (float) ((tickIndex * 45) * Math.PI / 270);
@@ -276,9 +306,57 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             }
 
             //12 Uhr Ticks (l. und r.)
-            canvas.drawLine(centerX - 0.017f*width, 0, centerX - 0.017f*width, RTicks, mRTickPaint);
-            canvas.drawLine(centerX + 0.017f*width, 0, centerX + 0.017f*width, RTicks, mRTickPaint);
+            canvas.drawLine(centerX - 0.017f * width, 0, centerX - 0.017f * width, RTicks, mRTickPaint);
+            canvas.drawLine(centerX + 0.017f * width, 0, centerX + 0.017f * width, RTicks, mRTickPaint);
 
+        }
+
+        private void drawBattery(Canvas canvas) {
+            //Battery
+            //TODO: Batterie nicht bei jedem onDraw aktualisieren
+            IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+            Intent batteryStatus = getApplicationContext().registerReceiver(null, iFilter);
+            int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            //TODO: Größenberechnung auslagern
+            Rect rectbounds = new Rect();
+            mDayPaint.getTextBounds(String.valueOf(level) + "%", 0, String.valueOf(level).length(), rectbounds);
+
+            canvas.drawText(String.valueOf(level), centerX + width / 4, centerY + (rectbounds.height() / 2), mDayPaint);
+
+
+            //Battery Torte
+            Paint batteryTorte = new Paint();
+            batteryTorte.setARGB(255, 255, 0, 0);
+            batteryTorte.setStrokeWidth(10);
+            batteryTorte.setStyle(Paint.Style.STROKE);
+            final RectF oval = new RectF();
+            oval.set(width / 4 + centerX - width / 10, centerY - width / 10, width / 4 + centerX + width / 10, centerY + width / 10);
+            canvas.drawArc(oval, 270, ((level * 360) / 100), false, batteryTorte);
+
+
+        }
+
+        private void drawWeekDay(Canvas canvas) {
+
+            //SDF um Wochentag zu formatieren
+            SimpleDateFormat daySDF = new SimpleDateFormat("EEEE", Locale.US);
+            //Wochentag zeichnen
+            canvas.drawText(daySDF.format(mCalendar.getTime()), centerX, centerY - 0.45f * centerY, mDayPaint);
+
+
+        }
+
+        private void drawDay(Canvas canvas) {
+
+            //SDF um Tag zu formatieren
+            SimpleDateFormat dateSDF = new SimpleDateFormat("dd", Locale.US);
+            //Tag zeichnen
+            canvas.drawText(dateSDF.format(mCalendar.getTime()), centerX, centerY + 0.6f * centerY, mDatePaint);
+
+
+        }
+
+        private void drawHands(Canvas canvas) {
             //Calendar aktualisieren
             mCalendar.setTimeInMillis(System.currentTimeMillis());
 
@@ -287,39 +365,24 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             float secRot = (secondsmilli) / 30f * (float) Math.PI;
 
 
-            float minDegree = (mTime.minute + (mTime.second/60f)) * 6f;
-            float hourDegree = (mTime.hour + (mTime.minute/60f)) * 30f;
-            float secLength = 0.488f*width;
+            float minDegree = (mTime.minute + (mTime.second / 60f)) * 6f;
+            float hourDegree = (mTime.hour + (mTime.minute / 60f)) * 30f;
+            float secLength = 0.488f * width;
             Matrix hourMatrix = new Matrix();
-            hourMatrix.setRotate(hourDegree, hourHand.getWidth()/2, hourHand.getHeight() + 0.082f*width);
-            hourMatrix.postTranslate(centerX-hourHand.getWidth()/2,centerY-(hourHand.getHeight() + 0.082f*width));
+            hourMatrix.setRotate(hourDegree, hourHand.getWidth() / 2, hourHand.getHeight() + 0.082f * width);
+            hourMatrix.postTranslate(centerX - hourHand.getWidth() / 2, centerY - (hourHand.getHeight() + 0.082f * width));
 
             Matrix minMatrix = new Matrix();
             minMatrix.setRotate(minDegree, minHand.getWidth() / 2, minHand.getHeight() + 0.096f * width);
             minMatrix.postTranslate(centerX - minHand.getWidth() / 2, centerY - (minHand.getHeight() + 0.096f * width));
 
-
-
-            //SDF um Wochentag und Tag zu formatieren
-            SimpleDateFormat dateSDF = new SimpleDateFormat("dd", Locale.US);
-            SimpleDateFormat daySDF = new SimpleDateFormat("EEEE", Locale.US);
-
-            //Wochentag zeichnen
-            float textWidthDate = mDatePaint.measureText(dateSDF.format(mCalendar.getTime()));
-            System.out.print(String.valueOf(textWidthDate));
-            canvas.drawText(dateSDF.format(mCalendar.getTime()), centerX-textWidthDate/2, centerY + 0.6f*centerY, mDatePaint);
-
-            //Tag zeichnen
-            float textWidthDay = mDayPaint.measureText(daySDF.format(mCalendar.getTime()));
-            canvas.drawText(daySDF.format(mCalendar.getTime()), centerX-textWidthDay/2, centerY - 0.45f*centerY, mDayPaint);
-
             if (!isInAmbientMode()) {
                 float secX = (float) Math.sin(secRot) * secLength;
                 float secY = (float) -Math.cos(secRot) * secLength;
                 canvas.drawLine(centerX, centerY, centerX + secX, centerY + secY, mSecondPaint);
-                canvas.drawCircle(centerX, centerY, 0.016f*width, mCirclePaint);
+                canvas.drawCircle(centerX, centerY, 0.016f * width, mCirclePaint);
             }
-            canvas.drawBitmap(hourHand,hourMatrix,mHourPaint);
+            canvas.drawBitmap(hourHand, hourMatrix, mHourPaint);
             canvas.drawBitmap(minHand, minMatrix, mMinutePaint);
 
         }
@@ -358,6 +421,13 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             }
             mRegisteredTimeZoneReceiver = false;
             MinimalisticWatchFace.this.unregisterReceiver(mTimeZoneReceiver);
+        }
+
+        @Override
+        public void onApplyWindowInsets(WindowInsets insets) {
+            super.onApplyWindowInsets(insets);
+            mIsRound = insets.isRound();
+            mChinSize = insets.getSystemWindowInsetBottom();
         }
 
         /**
