@@ -253,7 +253,7 @@ public class MinimalisticWatchFace extends CanvasWatchFaceService {
             mTime.setToNow();
 
             drawTicks(canvas);
-            drawBattery(canvas);
+           // drawBattery(canvas);
             drawWeekDay(canvas);
             drawDay(canvas);
             drawHands(canvas);
